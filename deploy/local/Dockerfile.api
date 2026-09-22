@@ -1,0 +1,14 @@
+FROM maven:3.9-eclipse-temurin-21 AS build
+WORKDIR /build
+COPY main/manager-api/pom.xml ./pom.xml
+COPY main/manager-api/src ./src
+RUN --mount=type=cache,target=/root/.m2 mvn -B package -Dmaven.test.skip=true
+
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends fontconfig fonts-dejavu-core && rm -rf /var/lib/apt/lists/*
+COPY main/manager-web/public/generator/static/fonts/ /usr/share/fonts/pico/
+RUN fc-cache -f
+COPY --from=build /build/target/pico-esp32-api.jar /app/pico-esp32-api.jar
+EXPOSE 8002
+ENTRYPOINT ["java", "-jar", "/app/pico-esp32-api.jar"]

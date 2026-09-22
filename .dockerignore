@@ -5,3 +5,9 @@ __pycache__
 Dockerfile
 tmp/
 data/
+.runtime/
+.codegraph/
+**/node_modules/
+**/.npm-cache/
+**/data/
+**/target/

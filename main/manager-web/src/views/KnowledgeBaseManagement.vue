@@ -20,6 +20,9 @@
                 <CustomButton icon="el-icon-search" @click="handleSearchKb">
                   {{ $t('knowledgeBaseManagement.search') }}
                 </CustomButton>
+                <CustomButton icon="el-icon-setting" type="confirm" @click="openRagConfig">
+                  {{ $t('knowledgeBaseManagement.ragConfig') }}
+                </CustomButton>
                 <CustomButton type="confirm" icon="el-icon-plus" @click="showAddDialog">
                   {{ $t('knowledgeBaseManagement.addKnowledgeBase') }}
                 </CustomButton>
@@ -100,6 +103,50 @@
     </div>
 
     <!-- Knowledge Base Dialog -->
+    <CustomDialog
+      :visible.sync="ragDialogVisible"
+      :title="$t('knowledgeBaseManagement.ragConfig')"
+      width="60%"
+      :showFooter="false"
+      @close="ragDialogVisible = false"
+    >
+      <div v-loading="ragLoading" class="rag-config-body">
+        <el-alert
+          :title="$t('knowledgeBaseManagement.ragConfigHint')"
+          type="info"
+          :closable="false"
+          show-icon
+        />
+        <el-table :data="ragModelList" style="width: 100%; margin-top: 16px">
+          <el-table-column :label="$t('modelConfig.modelName')" prop="modelName" align="center" />
+          <el-table-column :label="$t('modelConfig.provider')" align="center">
+            <template slot-scope="scope">{{ scope.row.configJson.type || '-' }}</template>
+          </el-table-column>
+          <el-table-column :label="$t('modelConfig.isEnabled')" align="center">
+            <template slot-scope="scope">
+              <el-tag v-if="scope.row.isEnabled === 1" type="success">{{ $t('common.success') }}</el-tag>
+              <el-tag v-else type="info">{{ $t('knowledgeBaseManagement.disabled') }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column :label="$t('modelConfig.action')" align="center" width="140">
+            <template slot-scope="scope">
+              <el-button type="text" size="mini" @click="editRagModel(scope.row)">
+                {{ $t('modelConfig.edit') }}
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <el-empty v-if="!ragLoading && ragModelList.length === 0" :description="$t('knowledgeBaseManagement.noData')" />
+      </div>
+    </CustomDialog>
+
+    <ModelEditDialog
+      modelType="RAG"
+      :visible.sync="ragEditVisible"
+      :modelData="ragEditData"
+      @save="handleRagModelSave"
+    />
+
     <KnowledgeBaseDialog
       ref="knowledgeBaseDialog"
       :title="dialogTitle"
@@ -255,9 +302,10 @@ import ManualIcon from "@/components/ManualIcon.vue";
 import CustomDialog from "@/components/CustomDialog.vue";
 import CustomPagination from "@/components/CustomPagination.vue";
 import CustomButton from "@/components/CustomButton.vue";
+import ModelEditDialog from "@/components/ModelEditDialog.vue";
 
 export default {
-  components: { HeaderBar, VersionFooter, KnowledgeBaseDialog, KnowledgeBaseItem, ManualIcon, CustomDialog, CustomPagination, CustomButton },
+  components: { HeaderBar, VersionFooter, KnowledgeBaseDialog, KnowledgeBaseItem, ManualIcon, CustomDialog, CustomPagination, CustomButton, ModelEditDialog },
   data() {
     return {
       knowledgeBases: [],
@@ -290,6 +338,11 @@ export default {
       sliceCurrentPage: 1,
       slicePageSize: 10,
       sliceTotal: 0,
+      ragDialogVisible: false,
+      ragLoading: false,
+      ragModelList: [],
+      ragEditVisible: false,
+      ragEditData: {},
     };
   },
   computed: {
@@ -301,6 +354,43 @@ export default {
     this.fetchKnowledgeBases();
   },
   methods: {
+    openRagConfig() {
+      this.ragDialogVisible = true;
+      this.loadRagModels();
+    },
+    loadRagModels() {
+      this.ragLoading = true;
+      Api.model.getRAGModels((res) => {
+        this.ragLoading = false;
+        if (res.data && res.data.code === 0) {
+          this.ragModelList = res.data.data || [];
+        } else {
+          this.$message.error(res.data?.msg || this.$t('knowledgeBaseManagement.ragConfigLoadFailed'));
+        }
+      }, () => {
+        this.ragLoading = false;
+        this.$message.error(this.$t('knowledgeBaseManagement.ragConfigLoadFailed'));
+      });
+    },
+    editRagModel(row) {
+      this.ragEditData = JSON.parse(JSON.stringify(row));
+      this.ragEditVisible = true;
+    },
+    handleRagModelSave({ provideCode, formData, done }) {
+      Api.model.updateModel(
+        { modelType: 'RAG', provideCode, id: formData.id, formData },
+        ({ data }) => {
+          done && done();
+          if (data.code === 0) {
+            this.$message.success(this.$t('modelConfig.saveSuccess'));
+            this.ragEditVisible = false;
+            this.loadRagModels();
+          } else {
+            this.$message.error(data.msg || this.$t('modelConfig.saveFailed'));
+          }
+        }
+      );
+    },
     fetchKnowledgeBases() {
       this.loading = true;
       Api.knowledgeBase.getKnowledgeBaseList(

@@ -121,8 +121,7 @@ def load_config(runtime_root: Path) -> RuntimeConfig:
 
 
 DEFAULT_WAKE_WORDS = [
-    "你好小智",
-    "你好小志",
+    "你好Pico",
     "小爱同学",
     "你好小鑫",
     "你好小新",

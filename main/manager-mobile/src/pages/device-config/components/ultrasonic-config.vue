@@ -542,10 +542,10 @@ async function stopAudio() {
           2. {{ t('deviceConfig.clickGenerateAndPlaySoundWave') }}
         </text>
         <text class="help-item">
-          3. {{ t('deviceConfig.bringPhoneCloseToXiaozhiDevice') }}
+          3. {{ t('deviceConfig.bringPhoneCloseToPicoDevice') }}
         </text>
         <text class="help-item">
-          4. {{ t('deviceConfig.duringAudioPlaybackXiaozhiWillReceive') }}
+          4. {{ t('deviceConfig.duringAudioPlaybackPicoWillReceive') }}
         </text>
         <text class="help-item">
           5. {{ t('deviceConfig.afterConfigSuccessDeviceWillConnect') }}

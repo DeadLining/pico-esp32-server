@@ -746,3 +746,38 @@ databaseChangeLog:
         - sqlFile:
             encoding: utf8
             path: classpath:db/changelog/202609021000.sql
+  - changeSet:
+      id: 202609211000-pico-brand
+      author: pico
+      changes:
+        - sqlFile:
+            encoding: utf8
+            path: classpath:db/changelog/202609211000-pico-brand.sql
+  - changeSet:
+      id: 202609211100-pico-console-url
+      author: pico
+      changes:
+        - sqlFile:
+            encoding: utf8
+            path: classpath:db/changelog/202609211100-pico-console-url.sql
+  - changeSet:
+      id: 202609221000-pico-wakeup-words
+      author: pico
+      changes:
+        - sqlFile:
+            encoding: utf8
+            path: classpath:db/changelog/202609221000-pico-wakeup-words.sql
+  - changeSet:
+      id: 202609221100-pico-firmware-dict
+      author: pico
+      changes:
+        - sqlFile:
+            encoding: utf8
+            path: classpath:db/changelog/202609221100-pico-firmware-dict.sql
+  - changeSet:
+      id: 202609221200-pico-agent-persona
+      author: pico
+      changes:
+        - sqlFile:
+            encoding: utf8
+            path: classpath:db/changelog/202609221200-pico-agent-persona.sql

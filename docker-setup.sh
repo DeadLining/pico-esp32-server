@@ -46,7 +46,7 @@ cat << "EOF"
      \/  \__,_||_| |_||_||_||_| \__,_|   |_| \_| \__,_||_| |_||_| \__,_| \__,_|                                                                                                                                                                                                                               
 EOF
 echo -e "\e[0m"  # 重置颜色
-echo -e "\e[1;36m  小智服务端全量部署一键安装脚本 Ver 0.2 2025年8月20日更新 \e[0m\n"
+echo -e "\e[1;36m  Pico服务端全量部署一键安装脚本 Ver 0.2 2025年8月20日更新 \e[0m\n"
 sleep 1
 
 
@@ -63,7 +63,7 @@ check_whiptail() {
 check_whiptail
 
 # 创建确认对话框
-whiptail --title "安装确认" --yesno "即将安装小智服务端，是否继续？" \
+whiptail --title "安装确认" --yesno "即将安装Pico服务端，是否继续？" \
   --yes-button "继续" --no-button "退出" 10 50
 
 # 根据用户选择执行操作
@@ -110,14 +110,14 @@ check_and_download() {
 # 检查是否已安装
 check_installed() {
     # 检查目录是否存在且非空
-    if [ -d "/opt/xiaozhi-server/" ] && [ "$(ls -A /opt/xiaozhi-server/)" ]; then
+    if [ -d "/opt/pico-server/" ] && [ "$(ls -A /opt/pico-server/)" ]; then
         DIR_CHECK=1
     else
         DIR_CHECK=0
     fi
     
     # 检查容器是否存在
-    if docker inspect xiaozhi-esp32-server > /dev/null 2>&1; then
+    if docker inspect pico-esp32-server > /dev/null 2>&1; then
         CONTAINER_CHECK=1
     else
         CONTAINER_CHECK=0
@@ -133,19 +133,19 @@ check_installed() {
 
 # 更新相关
 if check_installed; then
-    if whiptail --title "已安装检测" --yesno "检测到小智服务端已安装，是否进行升级？" 10 60; then
+    if whiptail --title "已安装检测" --yesno "检测到Pico服务端已安装，是否进行升级？" 10 60; then
         # 用户选择升级，执行清理操作
         echo "开始升级操作..."
         
         # 停止并移除所有docker-compose服务
-        docker compose -f /opt/xiaozhi-server/docker-compose_all.yml down
+        docker compose -f /opt/pico-server/docker-compose_all.yml down
         
         # 停止并删除特定容器（考虑容器可能不存在的情况）
         containers=(
-            "xiaozhi-esp32-server"
-            "xiaozhi-esp32-server-web"
-            "xiaozhi-esp32-server-db"
-            "xiaozhi-esp32-server-redis"
+            "pico-esp32-server"
+            "pico-esp32-server-web"
+            "pico-esp32-server-db"
+            "pico-esp32-server-redis"
         )
         
         for container in "${containers[@]}"; do
@@ -160,8 +160,8 @@ if check_installed; then
         
         # 删除特定镜像（考虑镜像可能不存在的情况）
         images=(
-            "ghcr.nju.edu.cn/xinnan-tech/xiaozhi-esp32-server:server_latest"
-            "ghcr.nju.edu.cn/xinnan-tech/xiaozhi-esp32-server:web_latest"
+            "ghcr.nju.edu.cn/xinnan-tech/pico-esp32-server:server_latest"
+            "ghcr.nju.edu.cn/xinnan-tech/pico-esp32-server:web_latest"
         )
         
         for image in "${images[@]}"; do
@@ -176,21 +176,21 @@ if check_installed; then
         echo "所有清理操作完成"
         
         # 备份原有配置文件
-        mkdir -p /opt/xiaozhi-server/backup/
-        if [ -f /opt/xiaozhi-server/data/.config.yaml ]; then
-            cp /opt/xiaozhi-server/data/.config.yaml /opt/xiaozhi-server/backup/.config.yaml
-            echo "已备份原有配置文件到 /opt/xiaozhi-server/backup/.config.yaml"
+        mkdir -p /opt/pico-server/backup/
+        if [ -f /opt/pico-server/data/.config.yaml ]; then
+            cp /opt/pico-server/data/.config.yaml /opt/pico-server/backup/.config.yaml
+            echo "已备份原有配置文件到 /opt/pico-server/backup/.config.yaml"
         fi
         
         # 下载最新版配置文件
-        check_and_download "/opt/xiaozhi-server/docker-compose_all.yml" "https://ghfast.top/https://raw.githubusercontent.com/xinnan-tech/xiaozhi-esp32-server/refs/heads/main/main/xiaozhi-server/docker-compose_all.yml"
-        check_and_download "/opt/xiaozhi-server/data/.config.yaml" "https://ghfast.top/https://raw.githubusercontent.com/xinnan-tech/xiaozhi-esp32-server/refs/heads/main/main/xiaozhi-server/config_from_api.yaml"
+        check_and_download "/opt/pico-server/docker-compose_all.yml" "https://ghfast.top/https://raw.githubusercontent.com/xinnan-tech/pico-esp32-server/refs/heads/main/main/pico-server/docker-compose_all.yml"
+        check_and_download "/opt/pico-server/data/.config.yaml" "https://ghfast.top/https://raw.githubusercontent.com/xinnan-tech/pico-esp32-server/refs/heads/main/main/pico-server/config_from_api.yaml"
         
         # 启动Docker服务
         echo "开始启动最新版本服务..."
         # 升级完成后标记，跳过后续下载步骤
         UPGRADE_COMPLETED=1
-        docker compose -f /opt/xiaozhi-server/docker-compose_all.yml up -d
+        docker compose -f /opt/pico-server/docker-compose_all.yml up -d
     else
           whiptail --title "跳过升级" --msgbox "已取消升级，将继续使用当前版本。" 10 50
           # 跳过升级，继续执行后续安装流程
@@ -305,25 +305,25 @@ fi
 echo "------------------------------------------------------------"
 echo "开始创建安装目录..."
 # 检查并创建数据目录
-if [ ! -d /opt/xiaozhi-server/data ]; then
-    mkdir -p /opt/xiaozhi-server/data
-    echo "已创建数据目录: /opt/xiaozhi-server/data"
+if [ ! -d /opt/pico-server/data ]; then
+    mkdir -p /opt/pico-server/data
+    echo "已创建数据目录: /opt/pico-server/data"
 else
-    echo "目录xiaozhi-server/data已存在，跳过创建"
+    echo "目录pico-server/data已存在，跳过创建"
 fi
 
 # 检查并创建模型目录
-if [ ! -d /opt/xiaozhi-server/models/SenseVoiceSmall ]; then
-    mkdir -p /opt/xiaozhi-server/models/SenseVoiceSmall
-    echo "已创建模型目录: /opt/xiaozhi-server/models/SenseVoiceSmall"
+if [ ! -d /opt/pico-server/models/SenseVoiceSmall ]; then
+    mkdir -p /opt/pico-server/models/SenseVoiceSmall
+    echo "已创建模型目录: /opt/pico-server/models/SenseVoiceSmall"
 else
-    echo "目录xiaozhi-server/models/SenseVoiceSmall已存在，跳过创建"
+    echo "目录pico-server/models/SenseVoiceSmall已存在，跳过创建"
 fi
 
 echo "------------------------------------------------------------"
 echo "开始下载语音识别模型"
 # 下载模型文件
-MODEL_PATH="/opt/xiaozhi-server/models/SenseVoiceSmall/model.pt"
+MODEL_PATH="/opt/pico-server/models/SenseVoiceSmall/model.pt"
 if [ ! -f "$MODEL_PATH" ]; then
     (
     for i in {1..20}; do
@@ -341,8 +341,8 @@ fi
 
 # 如果不是升级完成，才执行下载
 if [ -z "$UPGRADE_COMPLETED" ]; then
-    check_and_download "/opt/xiaozhi-server/docker-compose_all.yml" "https://ghfast.top/https://raw.githubusercontent.com/xinnan-tech/xiaozhi-esp32-server/refs/heads/main/main/xiaozhi-server/docker-compose_all.yml"
-    check_and_download "/opt/xiaozhi-server/data/.config.yaml" "https://ghfast.top/https://raw.githubusercontent.com/xinnan-tech/xiaozhi-esp32-server/refs/heads/main/main/xiaozhi-server/config_from_api.yaml"
+    check_and_download "/opt/pico-server/docker-compose_all.yml" "https://ghfast.top/https://raw.githubusercontent.com/xinnan-tech/pico-esp32-server/refs/heads/main/main/pico-server/docker-compose_all.yml"
+    check_and_download "/opt/pico-server/data/.config.yaml" "https://ghfast.top/https://raw.githubusercontent.com/xinnan-tech/pico-esp32-server/refs/heads/main/main/pico-server/config_from_api.yaml"
 fi
 
 # 启动Docker服务
@@ -350,7 +350,7 @@ fi
 echo "------------------------------------------------------------"
 echo "正在拉取Docker镜像..."
 echo "这可能需要几分钟时间，请耐心等待"
-docker compose -f /opt/xiaozhi-server/docker-compose_all.yml up -d
+docker compose -f /opt/pico-server/docker-compose_all.yml up -d
 
 if [ $? -ne 0 ]; then
     whiptail --title "错误" --msgbox "Docker服务启动失败，请尝试更换镜像源后重新执行本脚本" 10 60
@@ -368,7 +368,7 @@ while true; do
         exit 1
     fi
     
-    if docker logs xiaozhi-esp32-server-web 2>&1 | grep -q "Started AdminApplication in"; then
+    if docker logs pico-esp32-server-web 2>&1 | grep -q "Started AdminApplication in"; then
         break
     fi
     sleep 1
@@ -376,7 +376,7 @@ done
 
     echo "服务端启动成功！正在完成配置..."
     echo "正在启动服务..."
-    docker compose -f /opt/xiaozhi-server/docker-compose_all.yml up -d
+    docker compose -f /opt/pico-server/docker-compose_all.yml up -d
     echo "服务启动完成！"
 )
 
@@ -390,14 +390,14 @@ SECRET_KEY=$(whiptail --title "配置服务器密钥" --inputbox "请使用超�
 if [ -n "$SECRET_KEY" ]; then
     python3 -c "
 import sys, yaml; 
-config_path = '/opt/xiaozhi-server/data/.config.yaml'; 
+config_path = '/opt/pico-server/data/.config.yaml'; 
 with open(config_path, 'r') as f: 
     config = yaml.safe_load(f) or {}; 
-config['manager-api'] = {'url': 'http://xiaozhi-esp32-server-web:8002/xiaozhi', 'secret': '$SECRET_KEY'}; 
+config['manager-api'] = {'url': 'http://pico-esp32-server-web:8002/pico', 'secret': '$SECRET_KEY'}; 
 with open(config_path, 'w') as f: 
     yaml.dump(config, f); 
 "
-    docker restart xiaozhi-esp32-server
+    docker restart pico-esp32-server
 fi
 
 # 获取并显示地址信息
@@ -407,7 +407,7 @@ LOCAL_IP=$(hostname -I | awk '{print $1}')
 whiptail --title "安装完成！" --msgbox "\
 服务端相关地址如下：\n\
 管理后台访问地址: http://$LOCAL_IP:8002\n\
-OTA 地址: http://$LOCAL_IP:8002/xiaozhi/ota/\n\
+OTA 地址: http://$LOCAL_IP:8002/pico/ota/\n\
 视觉分析接口地址: http://$LOCAL_IP:8003/mcp/vision/explain\n\
-WebSocket 地址: ws://$LOCAL_IP:8000/xiaozhi/v1/\n\
+WebSocket 地址: ws://$LOCAL_IP:8000/pico/v1/\n\
 \n安装完毕！感谢您的使用！\n按Enter键退出..." 16 70

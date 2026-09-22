@@ -554,14 +554,14 @@ const MODEL_FIELD_TYPES = {
   asrModelId: "ASR",
   vadModelId: "VAD",
   llmModelId: "LLM",
-  slmModelId: "SLM",
-  vllmModelId: "VLLM",
+  // 会话总结复用主语言模型
+  slmModelId: "LLM",
   ttsModelId: "TTS",
   memModelId: "Memory",
   intentModelId: "Intent"
 };
 
-const MODEL_TYPES = ["ASR", "VAD", "LLM", "SLM", "VLLM", "TTS", "Memory", "Intent"];
+const MODEL_TYPES = ["ASR", "VAD", "LLM", "TTS", "Memory", "Intent"];
 
 const FALLBACK_MODEL_NAME_KEYS = {
   Memory_nomem: "agentSnapshot.model.Memory_nomem",

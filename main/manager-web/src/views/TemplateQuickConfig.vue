@@ -70,7 +70,6 @@ const DEFAULT_MODEL_CONFIG = {
   vadModelId: "VAD_SileroVAD",
   asrModelId: "ASR_FunASR",
   llmModelId: "LLM_ChatGLMLLM",
-  vllmModelId: "VLLM_ChatGLMVLLM",
   memModelId: "Memory_nomem",
   intentModelId: "Intent_function_call"
 };
@@ -81,7 +80,7 @@ export default {
   data() {
     return {
       form: {
-        agentCode: "小智",
+        agentCode: "Pico",
         agentName: "",
         systemPrompt: "",
         sort: 0,
@@ -206,7 +205,6 @@ export default {
           vadModelId: templateData.vadModelId || this.form.model.vadModelId,
           asrModelId: templateData.asrModelId || this.form.model.asrModelId,
           llmModelId: templateData.llmModelId || this.form.model.llmModelId,
-          vllmModelId: templateData.vllmModelId || this.form.model.vllmModelId,
           memModelId: templateData.memModelId || this.form.model.memModelId,
           intentModelId: templateData.intentModelId || this.form.model.intentModelId
         }
@@ -218,7 +216,7 @@ export default {
       this.form = {
         ...this.form,
         agentName: this.$t('templateQuickConfig.newTemplate'),
-        agentCode: '小智',
+        agentCode: 'Pico',
         systemPrompt: '',
         sort: 1
       };

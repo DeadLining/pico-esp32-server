@@ -588,22 +588,22 @@ export default {
     getDeviceAvatar(deviceId) {
       // 根据 deviceId 计算 MD5，选择对应的头像
       const avatars = [
-        require('@/assets/device-avatars/xiaozhi-logo1.png'),
-        require('@/assets/device-avatars/xiaozhi-logo2.png'),
-        require('@/assets/device-avatars/xiaozhi-logo3.png'),
-        require('@/assets/device-avatars/xiaozhi-logo4.png'),
-        require('@/assets/device-avatars/xiaozhi-logo5.png'),
-        require('@/assets/device-avatars/xiaozhi-logo6.png'),
-        require('@/assets/device-avatars/xiaozhi-logo7.png'),
-        require('@/assets/device-avatars/xiaozhi-logo8.png'),
-        require('@/assets/device-avatars/xiaozhi-logo9.png'),
-        require('@/assets/device-avatars/xiaozhi-logo10.png'),
-        require('@/assets/device-avatars/xiaozhi-logo11.png'),
-        require('@/assets/device-avatars/xiaozhi-logo12.png'),
-        require('@/assets/device-avatars/xiaozhi-logo13.png'),
-        require('@/assets/device-avatars/xiaozhi-logo14.png'),
-        require('@/assets/device-avatars/xiaozhi-logo15.png'),
-        require('@/assets/device-avatars/xiaozhi-logo16.png')
+        require('@/assets/device-avatars/pico-logo1.svg'),
+        require('@/assets/device-avatars/pico-logo2.svg'),
+        require('@/assets/device-avatars/pico-logo3.svg'),
+        require('@/assets/device-avatars/pico-logo4.svg'),
+        require('@/assets/device-avatars/pico-logo5.svg'),
+        require('@/assets/device-avatars/pico-logo6.svg'),
+        require('@/assets/device-avatars/pico-logo7.svg'),
+        require('@/assets/device-avatars/pico-logo8.svg'),
+        require('@/assets/device-avatars/pico-logo9.svg'),
+        require('@/assets/device-avatars/pico-logo10.svg'),
+        require('@/assets/device-avatars/pico-logo11.svg'),
+        require('@/assets/device-avatars/pico-logo12.svg'),
+        require('@/assets/device-avatars/pico-logo13.svg'),
+        require('@/assets/device-avatars/pico-logo14.svg'),
+        require('@/assets/device-avatars/pico-logo15.svg'),
+        require('@/assets/device-avatars/pico-logo16.svg')
       ];
       // 简单的哈希算法，根据 deviceId 分配头像
       let hash = 0;

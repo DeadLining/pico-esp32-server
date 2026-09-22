@@ -267,32 +267,10 @@
                           </el-select>
                         </div>
                       </el-form-item>
-                      <el-form-item class="model-item">
-                        <template #label>
-                          <el-tooltip :content="$t('roleConfig.tooltip.slm')" placement="top" effect="light" popper-class="custom-tooltip">
-                            <span>{{ $t('roleConfig.slm') }}</span>
-                          </el-tooltip>
-                        </template>
-                        <div class="model-select-wrapper">
-                          <el-select
-                            v-model="form.model.slmModelId"
-                            filterable
-                            :placeholder="$t('roleConfig.pleaseSelect')"
-                            class="form-select"
-                          >
-                            <el-option
-                              v-for="(item, optionIndex) in modelOptions['LLM']"
-                              :key="`option-asr-${optionIndex}`"
-                              :label="item.label"
-                              :value="item.value"
-                            />
-                          </el-select>
-                        </div>
-                      </el-form-item>
                     </div>
                     <el-form-item
-                      v-for="(model, index) in models.slice(4)"
-                      :key="`model-${index}`"
+                      v-for="(model, index) in models.slice(3)"
+                      :key="`model-${model.key}`"
                       class="model-item"
                     >
                       <template #label>
@@ -530,18 +508,16 @@ export default {
           vadModelId: "",
           asrModelId: "",
           llmModelId: "",
-          slmModelId: "",
-          vllmModelId: "",
           memModelId: "",
           intentModelId: "",
         },
       },
+      // 视觉分析与会话总结均复用主语言模型(LLM)，
+      // 因此不再单独暴露 SLM / VLLM 槽位。
       models: [
         { label: this.$t("roleConfig.vad"), key: "vadModelId", type: "VAD" },
         { label: this.$t("roleConfig.asr"), key: "asrModelId", type: "ASR" },
         { label: this.$t("roleConfig.llm"), key: "llmModelId", type: "LLM" },
-        { label: this.$t("roleConfig.slm"), key: "slmModelId", type: "SLM" },
-        { label: this.$t("roleConfig.vllm"), key: "vllmModelId", type: "VLLM" },
         { label: this.$t("roleConfig.intent"), key: "intentModelId", type: "Intent" },
         { label: this.$t("roleConfig.memory"), key: "memModelId", type: "Memory" },
         { label: this.$t("roleConfig.tts"), key: "ttsModelId", type: "TTS" },
@@ -635,8 +611,8 @@ export default {
         asrModelId: this.form.model.asrModelId,
         vadModelId: this.form.model.vadModelId,
         llmModelId: this.form.model.llmModelId,
-        slmModelId: this.form.model.slmModelId,
-        vllmModelId: this.form.model.vllmModelId,
+        // 会话总结固定复用当前主语言模型
+        slmModelId: this.form.model.llmModelId,
         ttsModelId: this.form.model.ttsModelId,
         chatHistoryConf: this.form.chatHistoryConf,
         memModelId: this.form.model.memModelId,
@@ -818,8 +794,6 @@ export default {
               vadModelId: "",
               asrModelId: "",
               llmModelId: "",
-              slmModelId: "",
-              vllmModelId: "",
               memModelId: "",
               intentModelId: "",
             },
@@ -878,8 +852,7 @@ export default {
           vadModelId: templateData.vadModelId || this.form.model.vadModelId,
           asrModelId: templateData.asrModelId || this.form.model.asrModelId,
           llmModelId: templateData.llmModelId || this.form.model.llmModelId,
-          slmModelId: templateData.llmModelId || this.form.model.slmModelId,
-          vllmModelId: templateData.vllmModelId || this.form.model.vllmModelId,
+          slmModelId: templateData.llmModelId || this.form.model.llmModelId,
           memModelId: templateData.memModelId || this.form.model.memModelId,
           intentModelId: templateData.intentModelId || this.form.model.intentModelId,
         },
@@ -989,8 +962,6 @@ export default {
                 vadModelId: agentData.vadModelId,
                 asrModelId: agentData.asrModelId,
                 llmModelId: agentData.llmModelId,
-                slmModelId: agentData.slmModelId,
-                vllmModelId: agentData.vllmModelId,
                 memModelId: agentData.memModelId,
                 intentModelId: agentData.intentModelId,
               },

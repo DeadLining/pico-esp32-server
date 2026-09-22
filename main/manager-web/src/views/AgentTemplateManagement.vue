@@ -117,7 +117,6 @@ const DEFAULT_MODEL_CONFIG = {
   vadModelId: "VAD_SileroVAD",
   asrModelId: "ASR_FunASR",
   llmModelId: "LLM_ChatGLMLLM",
-  vllmModelId: "VLLM_ChatGLMVLLM",
   memModelId: "Memory_nomem",
   intentModelId: "Intent_function_call"
 };
@@ -149,7 +148,7 @@ export default {
       confirmLoading: false,
       form: {
         id: null,
-        agentCode: "小智",
+        agentCode: "Pico",
         agentName: "",
         systemPrompt: "",
         sort: 0,
@@ -230,7 +229,7 @@ export default {
       this.dialogTitle = this.$t("templateQuickConfig.addTemplate");
       this.form = {
         id: null,
-        agentCode: "小智",
+        agentCode: "Pico",
         agentName: this.$t("templateQuickConfig.newTemplate"),
         systemPrompt: "",
         sort: 1,
@@ -249,7 +248,7 @@ export default {
           const template = res.data.data;
           this.form = {
             id: template.id,
-            agentCode: template.agentCode || "小智",
+            agentCode: template.agentCode || "Pico",
             agentName: template.agentName || "",
             systemPrompt: template.systemPrompt || "",
             sort: template.sort || 0,
@@ -258,7 +257,6 @@ export default {
               vadModelId: template.vadModelId || DEFAULT_MODEL_CONFIG.vadModelId,
               asrModelId: template.asrModelId || DEFAULT_MODEL_CONFIG.asrModelId,
               llmModelId: template.llmModelId || DEFAULT_MODEL_CONFIG.llmModelId,
-              vllmModelId: template.vllmModelId || DEFAULT_MODEL_CONFIG.vllmModelId,
               memModelId: template.memModelId || DEFAULT_MODEL_CONFIG.memModelId,
               intentModelId: template.intentModelId || DEFAULT_MODEL_CONFIG.intentModelId
             }

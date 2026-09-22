@@ -75,16 +75,16 @@ async function sendOTA(otaUrl, config) {
                 version: 0,
                 uuid: '',
                 application: {
-                    name: 'xiaozhi-web-test',
+                    name: 'pico-web-test',
                     version: '1.0.0',
                     compile_time: '2025-04-16 10:00:00',
                     idf_version: '4.4.3',
                     elf_sha256: '1234567890abcdef1234567890abcdef1234567890abcdef'
                 },
-                ota: { label: 'xiaozhi-web-test' },
+                ota: { label: 'pico-web-test' },
                 board: {
                     type: config.deviceName,
-                    ssid: 'xiaozhi-web-test',
+                    ssid: 'pico-web-test',
                     rssi: 0,
                     channel: 0,
                     ip: '192.168.1.1',

@@ -133,13 +133,12 @@ let restoreActionSequence = 0
 let restorePostActionSequence: number | null = null
 let restorePreviewRequestSequence: number | null = null
 
-const MODEL_TYPES = ['ASR', 'VAD', 'LLM', 'VLLM', 'TTS', 'Memory', 'Intent']
+const MODEL_TYPES = ['ASR', 'VAD', 'LLM', 'TTS', 'Memory', 'Intent']
 const MODEL_FIELD_TYPES: Record<string, string> = {
   asrModelId: 'ASR',
   vadModelId: 'VAD',
   llmModelId: 'LLM',
   slmModelId: 'LLM',
-  vllmModelId: 'VLLM',
   ttsModelId: 'TTS',
   memModelId: 'Memory',
   intentModelId: 'Intent',
@@ -158,7 +157,6 @@ const SNAPSHOT_FIELD_ORDER = [
   'vadModelId',
   'llmModelId',
   'slmModelId',
-  'vllmModelId',
   'ttsModelId',
   'ttsLanguage',
   'ttsVoiceId',

@@ -4,8 +4,8 @@
       <!-- 保持相同的头部 -->
       <el-header>
         <div style="display: flex;align-items: center;margin-top: 15px;margin-left: 10px;gap: 10px;">
-          <img loading="lazy" alt="" src="@/assets/xiaozhi-logo.png" style="width: 45px;height: 45px;" />
-          <img loading="lazy" alt="" :src="xiaozhiAiIcon" style="height: 18px;" />
+          <img loading="lazy" alt="" src="@/assets/pico-logo.svg" style="width: 45px;height: 45px;" />
+          <img loading="lazy" alt="" :src="picoAiIcon" style="height: 18px;" />
         </div>
       </el-header>
       <div class="login-person">
@@ -147,22 +147,22 @@ export default {
     currentLanguage() {
       return i18n.locale || "zh_CN";
     },
-    // 根据当前语言获取对应的xiaozhi-ai图标
-    xiaozhiAiIcon() {
+    // 根据当前语言获取对应的pico-ai图标
+    picoAiIcon() {
       const currentLang = this.currentLanguage;
       switch (currentLang) {
         case "zh_CN":
-          return require("@/assets/xiaozhi-ai.png");
+          return require("@/assets/pico-ai.svg");
         case "zh_TW":
-          return require("@/assets/xiaozhi-ai_zh_TW.png");
+          return require("@/assets/pico-ai_zh_TW.svg");
         case "en":
-          return require("@/assets/xiaozhi-ai_en.png");
+          return require("@/assets/pico-ai_en.svg");
         case "de":
-          return require("@/assets/xiaozhi-ai_de.png");
+          return require("@/assets/pico-ai_de.svg");
         case "vi":
-          return require("@/assets/xiaozhi-ai_vi.png");
+          return require("@/assets/pico-ai_vi.svg");
         default:
-          return require("@/assets/xiaozhi-ai.png");
+          return require("@/assets/pico-ai.svg");
       }
     },
     canSendMobileCaptcha() {

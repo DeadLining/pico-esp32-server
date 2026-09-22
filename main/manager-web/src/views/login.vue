@@ -9,8 +9,8 @@
             margin-left: 11px;
             gap: 10px;
           ">
-          <img loading="lazy" alt="" src="@/assets/xiaozhi-logo.png" style="width: 42px; height: 42px" />
-          <img loading="lazy" alt="" :src="xiaozhiAiIcon" style="height: 20px" />
+          <img loading="lazy" alt="" src="@/assets/pico-logo.svg" style="width: 42px; height: 42px" />
+          <img loading="lazy" alt="" :src="picoAiIcon" style="height: 20px" />
         </div>
       </el-header>
       <div class="login-person">
@@ -26,10 +26,10 @@
               padding: 0 30px;
             ">
             <img loading="lazy" alt="" src="@/assets/login/hi.png" style="width: 34px; height: 34px" />
-            <div class="login-text">{{ $t("login.title") }}</div>
+            <div class="login-text">Pico 管理员登录</div>
 
             <div class="login-welcome">
-              {{ $t("login.welcome") }}
+              仅限管理员访问
             </div>
 
             <!-- 语言切换下拉菜单 -->
@@ -62,26 +62,10 @@
             </el-dropdown>
           </div>
           <div style="padding: 0 30px">
-            <!-- 用户名登录 -->
-            <template v-if="!isMobileLogin">
-              <div class="input-box">
-                <img loading="lazy" alt="" class="input-icon" src="@/assets/login/username.png" />
-                <el-input v-model="form.username" :placeholder="$t('login.usernamePlaceholder')" />
-              </div>
-            </template>
-
-            <!-- 手机号登录 -->
-            <template v-else>
-              <div class="input-box">
-                <div style="display: flex; align-items: center; width: 100%">
-                  <el-select v-model="form.areaCode" style="width: 220px; margin-right: 10px">
-                    <el-option v-for="item in mobileAreaList" :key="item.key" :label="`${item.name} (${item.key})`"
-                      :value="item.key" />
-                  </el-select>
-                  <el-input v-model="form.mobile" :placeholder="$t('login.mobilePlaceholder')" />
-                </div>
-              </div>
-            </template>
+            <div class="input-box">
+              <img loading="lazy" alt="" class="input-icon" src="@/assets/login/username.png" />
+              <el-input v-model="form.username" placeholder="管理员账号" autocomplete="username" />
+            </div>
 
             <div class="input-box">
               <img loading="lazy" alt="" class="input-icon" src="@/assets/login/password.png" />
@@ -102,38 +86,9 @@
               <img loading="lazy" v-if="captchaUrl" :src="captchaUrl" alt="验证码"
                 style="width: 150px; height: 40px; cursor: pointer" @click="fetchCaptcha" />
             </div>
-            <div style="
-                font-weight: 400;
-                font-size: 14px;
-                text-align: left;
-                color: #5778ff;
-                display: flex;
-                justify-content: space-between;
-                margin-top: 20px;
-              ">
-              <div v-if="allowUserRegister" style="cursor: pointer" @click="goToRegister">
-                {{ $t("login.register") }}
-              </div>
-              <div style="cursor: pointer" @click="goToForgetPassword" v-if="enableMobileRegister">
-                {{ $t("login.forgetPassword") }}
-              </div>
-            </div>
           </div>
           <div class="login-btn" @click="login">{{ $t("login.login") }}</div>
 
-          <!-- 登录方式切换按钮 -->
-          <div class="login-type-container" v-if="enableMobileRegister">
-            <div style="display: flex; gap: 10px">
-              <el-tooltip :content="$t('login.mobileLogin')" placement="bottom">
-                <el-button :type="isMobileLogin ? 'primary' : 'default'" icon="el-icon-mobile" circle
-                  @click="switchLoginType('mobile')"></el-button>
-              </el-tooltip>
-              <el-tooltip :content="$t('login.usernameLogin')" placement="bottom">
-                <el-button :type="!isMobileLogin ? 'primary' : 'default'" icon="el-icon-user" circle
-                  @click="switchLoginType('username')"></el-button>
-              </el-tooltip>
-            </div>
-          </div>
           <div style="font-size: 14px; color: #979db1">
             {{ $t("login.agreeTo") }}
             <div style="display: inline-block; color: #5778ff; cursor: pointer" @click="openPage('/user-agreement.html')">
@@ -157,7 +112,7 @@
 import Api from "@/apis/api";
 import VersionFooter from "@/components/VersionFooter.vue";
 import i18n, { changeLanguage } from "@/i18n";
-import { getUUID, goToPage, showDanger, showSuccess, sm2Encrypt, validateMobile } from "@/utils";
+import { getUUID, goToPage, showDanger, showSuccess, sm2Encrypt } from "@/utils";
 import { mapState } from "vuex";
 import featureManager from "@/utils/featureManager";
 
@@ -168,9 +123,6 @@ export default {
   },
   computed: {
     ...mapState({
-      allowUserRegister: (state) => state.pubConfig.allowUserRegister,
-      enableMobileRegister: (state) => state.pubConfig.enableMobileRegister,
-      mobileAreaList: (state) => state.pubConfig.mobileAreaList,
       sm2PublicKey: (state) => state.pubConfig.sm2PublicKey,
     }),
     // 获取当前语言
@@ -197,22 +149,22 @@ export default {
           return this.$t("language.zhCN");
       }
     },
-    // 根据当前语言获取对应的xiaozhi-ai图标
-    xiaozhiAiIcon() {
+    // 根据当前语言获取对应的pico-ai图标
+    picoAiIcon() {
       const currentLang = this.currentLanguage;
       switch (currentLang) {
         case "zh_CN":
-          return require("@/assets/xiaozhi-ai.png");
+          return require("@/assets/pico-ai.svg");
         case "zh_TW":
-          return require("@/assets/xiaozhi-ai_zh_TW.png");
+          return require("@/assets/pico-ai_zh_TW.svg");
         case "en":
-          return require("@/assets/xiaozhi-ai_en.png");
+          return require("@/assets/pico-ai_en.svg");
         case "de":
-          return require("@/assets/xiaozhi-ai_de.png");
+          return require("@/assets/pico-ai_de.svg");
         case "vi":
-          return require("@/assets/xiaozhi-ai_vi.png");
+          return require("@/assets/pico-ai_vi.svg");
         default:
-          return require("@/assets/xiaozhi-ai.png");
+          return require("@/assets/pico-ai.svg");
       }
     },
   },
@@ -224,21 +176,15 @@ export default {
         password: "",
         captcha: "",
         captchaId: "",
-        areaCode: "+86",
-        mobile: "",
       },
       captchaUuid: "",
       captchaUrl: "",
-      isMobileLogin: false,
       languageDropdownVisible: false,
     };
   },
   mounted() {
     this.fetchCaptcha();
-    this.$store.dispatch("fetchPubConfig").then(() => {
-      // 根据配置决定默认登录方式
-      this.isMobileLogin = this.enableMobileRegister;
-    });
+    this.$store.dispatch("fetchPubConfig");
   },
   methods: {
     openPage(url) {
@@ -284,17 +230,6 @@ export default {
       });
     },
 
-    // 切换登录方式
-    switchLoginType(type) {
-      this.isMobileLogin = type === "mobile";
-      // 清空表单
-      this.form.username = "";
-      this.form.mobile = "";
-      this.form.password = "";
-      this.form.captcha = "";
-      this.fetchCaptcha();
-    },
-
     // 封装输入验证逻辑
     validateInput(input, messageKey) {
       if (!input.trim()) {
@@ -316,20 +251,7 @@ export default {
     },
 
     async login() {
-      if (this.isMobileLogin) {
-        // 手机号登录验证
-        if (!validateMobile(this.form.mobile, this.form.areaCode)) {
-          showDanger(this.$t('login.requiredMobile'));
-          return;
-        }
-        // 拼接手机号作为用户名
-        this.form.username = this.form.areaCode + this.form.mobile;
-      } else {
-        // 用户名登录验证
-        if (!this.validateInput(this.form.username, 'login.requiredUsername')) {
-          return;
-        }
-      }
+      if (!this.validateInput(this.form.username, 'login.requiredUsername')) return;
 
       // 验证密码
       if (!this.validateInput(this.form.password, 'login.requiredPassword')) {
@@ -383,12 +305,7 @@ export default {
       }, 1000);
     },
 
-    goToRegister() {
-      goToPage("/register");
-    },
-    goToForgetPassword() {
-      goToPage("/retrieve-password");
-    }
+
   },
 };
 </script>

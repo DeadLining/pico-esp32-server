@@ -40,9 +40,6 @@
           <el-menu-item index="llm">
             <span class="menu-text">{{ $t("modelConfig.llm") }}</span>
           </el-menu-item>
-          <el-menu-item index="vllm">
-            <span class="menu-text">{{ $t("modelConfig.vllm") }}</span>
-          </el-menu-item>
           <el-menu-item index="intent">
             <span class="menu-text">{{ $t("modelConfig.intent") }}</span>
           </el-menu-item>
@@ -51,9 +48,6 @@
           </el-menu-item>
           <el-menu-item index="memory">
             <span class="menu-text">{{ $t("modelConfig.memory") }}</span>
-          </el-menu-item>
-          <el-menu-item index="rag">
-            <span class="menu-text">{{ $t("modelConfig.rag") }}</span>
           </el-menu-item>
         </el-menu>
 
@@ -68,7 +62,7 @@
               element-loading-spinner="el-icon-loading"
               element-loading-background="rgba(255, 255, 255, 0.7)"
               :header-cell-style="{ background: 'transparent' }"
-              :data="modelList"
+              :data="pagedModels"
               class="transparent-table"
               header-row-class-name="table-header"
               :header-cell-class-name="headerCellClassName"
@@ -185,6 +179,30 @@
                 </template>
               </el-table-column>
             </el-table>
+            <div class="effective-bar">
+              <div class="effective-info">
+                <span class="effective-label">{{ $t('modelConfig.effectiveConfig') }}</span>
+                <template v-if="effectiveModel">
+                  <el-tag type="success" size="small">{{ $t('modelConfig.inUse') }}</el-tag>
+                  <span class="effective-name">{{ effectiveModel.modelName }}</span>
+                  <span class="effective-provider">{{ effectiveModel.configJson.type || '-' }}</span>
+                  <el-button type="text" size="mini" @click="editModel(effectiveModel)">
+                    {{ $t('modelConfig.edit') }}
+                  </el-button>
+                </template>
+                <span v-else class="effective-empty">{{ $t('modelConfig.noEffective') }}</span>
+              </div>
+              <div class="preset-toggle" v-if="presetCount > 0">
+                <el-button type="text" size="mini" @click="showAll = !showAll">
+                  <i :class="showAll ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"></i>
+                  {{
+                    showAll
+                      ? $t('modelConfig.hidePresets')
+                      : $t('modelConfig.showPresets', { count: presetCount })
+                  }}
+                </el-button>
+              </div>
+            </div>
             <div class="table-footer">
               <div class="batch-actions">
                 <CustomButton :icon="isAllSelected ? 'el-icon-circle-close' : 'el-icon-circle-check'" type="default" size="small" @click="selectAll">
@@ -207,7 +225,7 @@
                 </CustomButton>
               </div>
               <CustomPagination
-                :total="total"
+                :total="filteredTotal"
                 :current-page="currentPage"
                 :page-size="pageSize"
                 :page-size-options="pageSizeOptions"
@@ -262,7 +280,6 @@ export default {
       editModelData: {},
       ttsDialogVisible: false,
       selectedTtsModelId: "",
-      modelList: [],
       pageSizeOptions: [10, 20, 50, 100],
       currentPage: 1,
       pageSize: 10,
@@ -271,10 +288,14 @@ export default {
       isAllSelected: false,
       loading: false,
       selectedModelConfig: {},
+      allModels: [],
+      agents: [],
+      showAll: false,
     };
   },
 
   created() {
+    this.loadAgents();
     this.loadData();
   },
 
@@ -295,6 +316,59 @@ export default {
       return (
         this.$t("modelConfig." + this.activeTab) || this.$t("modelConfig.modelConfig")
       );
+    },
+    // 当前生效配置：以智能体的真实绑定为准，绑定缺失时才回退到默认项
+    boundModelId() {
+      const agent = this.agents[0];
+      if (!agent) return null;
+      const fieldByType = {
+        VAD: "vadModelId",
+        ASR: "asrModelId",
+        LLM: "llmModelId",
+        Intent: "intentModelId",
+        TTS: "ttsModelId",
+        Memory: "memModelId",
+      };
+      const field = fieldByType[this.activeTab];
+      return field ? agent[field] || null : null;
+    },
+    effectiveModel() {
+      if (!this.allModels.length) return null;
+      if (this.boundModelId) {
+        const bound = this.allModels.find((m) => m.id === this.boundModelId);
+        if (bound) return bound;
+      }
+      return this.allModels.find((m) => m.isDefault === 1) || null;
+    },
+    // 除当前生效项以外的预置配置
+    presetModels() {
+      const effectiveId = this.effectiveModel ? this.effectiveModel.id : null;
+      return this.allModels.filter((m) => m.id !== effectiveId);
+    },
+    presetCount() {
+      return this.presetModels.length;
+    },
+    // 折叠时只显示当前生效项；展开后显示全部
+    searchedModels() {
+      const keyword = (this.search || "").trim().toLowerCase();
+      if (!keyword) return this.allModels;
+      return this.allModels.filter((m) => {
+        const name = String(m.modelName || "").toLowerCase();
+        const code = String(m.modelCode || "").toLowerCase();
+        const provider = String((m.configJson && m.configJson.type) || "").toLowerCase();
+        return name.includes(keyword) || code.includes(keyword) || provider.includes(keyword);
+      });
+    },
+    visibleModels() {
+      if (this.showAll) return this.searchedModels;
+      return this.effectiveModel ? [this.effectiveModel] : [];
+    },
+    filteredTotal() {
+      return this.visibleModels.length;
+    },
+    pagedModels() {
+      const start = (this.currentPage - 1) * this.pageSize;
+      return this.visibleModels.slice(start, start + this.pageSize);
     },
   },
 
@@ -341,11 +415,12 @@ export default {
       this.activeTab = index;
       this.currentPage = 1; // 重置到第一页
       this.pageSize = 10; // 可选：重置每页条数
+      this.showAll = false; // 切换类型时回到“仅当前生效”
       this.loadData();
     },
     handleSearch() {
       this.currentPage = 1;
-      this.loadData();
+      this.showAll = true; // 搜索时展开全部，确保能搜到预置项
     },
     // 批量删除
     batchDelete() {
@@ -467,7 +542,7 @@ export default {
     },
     handleSelectionChange(val) {
       this.selectedModels = val;
-      this.isAllSelected = val.length === this.modelList.length;
+      this.isAllSelected = val.length > 0 && val.length === this.pagedModels.length;
       if (val.length === 0) {
         this.isAllSelected = false;
       }
@@ -502,21 +577,51 @@ export default {
       });
     },
 
-    // 获取模型配置列表
+    // 获取智能体绑定，用于确定“当前生效”配置
+    // /agent/list 只返回名称，需再取一次 /agent/{id} 才能拿到各类型模型 ID
+    loadAgents() {
+      Api.agent.getAgentList(({ data }) => {
+        if (!data || data.code !== 0) return;
+        const list = data.data || [];
+        if (!list.length) {
+          this.agents = [];
+          return;
+        }
+        const first = list[0];
+        const agentId = first.agentId || first.id;
+        if (!agentId) {
+          this.agents = [];
+          return;
+        }
+        Api.agent.getDeviceConfig(agentId, ({ data: detail }) => {
+          if (detail && detail.code === 0 && detail.data) {
+            this.agents = [detail.data];
+          } else {
+            this.agents = [];
+          }
+        });
+      });
+    },
+    // 获取模型配置列表（一次性拉全量，按“当前生效/预置”分组展示）
     loadData() {
-      this.loading = true; // 开始加载
+      this.loading = true;
       const params = {
         modelType: this.activeTab,
-        modelName: this.search,
-        page: this.currentPage,
-        limit: this.pageSize,
+        modelName: "",
+        page: 1,
+        limit: 500,
       };
 
       Api.model.getModelList(params, ({ data }) => {
-        this.loading = false; // 结束加载
+        this.loading = false;
         if (data.code === 0) {
-          this.modelList = data.data.list;
-          this.total = data.data.total;
+          const list = (data.data && data.data.list) || [];
+          this.allModels = list;
+          // 默认项在最前，其余按原有顺序
+          this.allModels = list.slice().sort((a, b) => {
+            if (a.isDefault === b.isDefault) return 0;
+            return a.isDefault === 1 ? -1 : 1;
+          });
         } else {
           this.$message.error(data.msg || this.$t("modelConfig.fetchModelsFailed"));
         }
@@ -566,6 +671,43 @@ export default {
 
 ::v-deep .el-table tr {
   background: transparent;
+}
+
+.effective-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  margin: 0 0 12px;
+  background: #f2f7ff;
+  border: 1px solid #dbe7ff;
+  border-radius: 10px;
+}
+
+.effective-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.effective-label {
+  font-size: 13px;
+  color: #597294;
+}
+
+.effective-name {
+  font-weight: 600;
+  color: #172438;
+}
+
+.effective-provider {
+  font-size: 12px;
+  color: #8d99ab;
+}
+
+.effective-empty {
+  font-size: 13px;
+  color: #8d99ab;
 }
 
 .welcome {

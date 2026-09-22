@@ -1,0 +1,52 @@
+{
+	default_sni 82.157.168.149
+}
+# Keep existing device HTTP routes; never serve management over plaintext.
+http://82.157.168.149 {
+	handle /pico/ota/* {
+		reverse_proxy 127.0.0.1:18003
+	}
+	handle /pico/v1/* {
+		reverse_proxy 127.0.0.1:18000
+	}
+	# Device vision (camera) upload endpoint. Stays on the device-facing
+	# plaintext entrypoint, same host/port the firmware already uses for
+	# OTA and the websocket.
+	handle /mcp/vision/explain {
+		reverse_proxy 127.0.0.1:18003
+	}
+	handle {
+		redir https://82.157.168.149{uri} 308
+	}
+}
+https://82.157.168.149 {
+	tls {
+		issuer acme {
+			dir https://acme-v02.api.letsencrypt.org/directory
+			profile shortlived
+		}
+	}
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy same-origin
+		X-Frame-Options SAMEORIGIN
+	}
+	# These service-to-service and diagnostic routes are never public,
+	# regardless of administrator login.
+	@internal path /pico/config /pico/config/* /pico/device/address-book/call /pico/agent/chat-history/report /pico/agent/chat-summary/* /pico/agent/chat-title/* /pico/druid* /pico/actuator* /pico/v3/api-docs* /pico/doc.html /pico/swagger* /pico/webjars/*
+	handle @internal {
+		respond "Not found" 404
+	}
+	handle /pico/ota/* {
+		reverse_proxy 127.0.0.1:18003
+	}
+	handle /pico/v1/* {
+		reverse_proxy 127.0.0.1:18000
+	}
+	handle /mcp/vision/explain {
+		reverse_proxy 127.0.0.1:18003
+	}
+	handle {
+		reverse_proxy 127.0.0.1:18002
+	}
+}

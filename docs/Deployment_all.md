@@ -19,7 +19,7 @@ docker 安装全模块有两种方式，你可以[使用懒人脚本](./Deployme
 
 使用SSH工具连接到服务器，以root权限执行如下脚本
 ```bash
-sudo bash -c "$(wget -qO- https://ghfast.top/https://raw.githubusercontent.com/xinnan-tech/xiaozhi-esp32-server/main/docker-setup.sh)"
+sudo bash -c "$(wget -qO- https://ghfast.top/https://raw.githubusercontent.com/xinnan-tech/pico-esp32-server/main/docker-setup.sh)"
 ```
 
 脚本会自动完成以下操作：
@@ -30,20 +30,20 @@ sudo bash -c "$(wget -qO- https://ghfast.top/https://raw.githubusercontent.com/x
 > 5. 引导配置服务端
 >
 
-执行完成后简单配置后，再参照[4. 运行程序](#4. 运行程序)和[5.重启xiaozhi-esp32-server](#5.重启xiaozhi-esp32-server)里提到的最重要的3件事情，完成3这三项配置后即可使用。
+执行完成后简单配置后，再参照[4. 运行程序](#4. 运行程序)和[5.重启pico-esp32-server](#5.重启pico-esp32-server)里提到的最重要的3件事情，完成3这三项配置后即可使用。
 
 ### 1.2 手动部署
 
 #### 1.2.1 创建目录
 
-安装完后，你需要为这个项目找一个安放配置文件的目录，例如我们可以新建一个文件夹叫`xiaozhi-server`。
+安装完后，你需要为这个项目找一个安放配置文件的目录，例如我们可以新建一个文件夹叫`pico-server`。
 
-创建好目录后，你需要在`xiaozhi-server`下面创建`data`文件夹和`models`文件夹，`models`下面还要再创建`SenseVoiceSmall`文件夹。
+创建好目录后，你需要在`pico-server`下面创建`data`文件夹和`models`文件夹，`models`下面还要再创建`SenseVoiceSmall`文件夹。
 
 最终目录结构如下所示：
 
 ```
-xiaozhi-server
+pico-server
   ├─ data
   ├─ models
      ├─ SenseVoiceSmall
@@ -66,28 +66,28 @@ xiaozhi-server
 
 ##### 1.2.3.1 下载 docker-compose_all.yaml
 
-用浏览器打开[这个链接](../main/xiaozhi-server/docker-compose_all.yml)。
+用浏览器打开[这个链接](../main/pico-server/docker-compose_all.yml)。
 
 在页面的右侧找到名称为`RAW`按钮，在`RAW`按钮的旁边，找到下载的图标，点击下载按钮，下载`docker-compose_all.yml`文件。 把文件下载到你的
-`xiaozhi-server`中。
+`pico-server`中。
 
-或者直接执行 `wget https://raw.githubusercontent.com/xinnan-tech/xiaozhi-esp32-server/refs/heads/main/main/xiaozhi-server/docker-compose_all.yml` 下载。
+或者直接执行 `wget https://raw.githubusercontent.com/xinnan-tech/pico-esp32-server/refs/heads/main/main/pico-server/docker-compose_all.yml` 下载。
 
 下载完后，回到本教程继续往下。
 
 ##### 1.2.3.2 下载 config_from_api.yaml
 
-用浏览器打开[这个链接](../main/xiaozhi-server/config_from_api.yaml)。
+用浏览器打开[这个链接](../main/pico-server/config_from_api.yaml)。
 
 在页面的右侧找到名称为`RAW`按钮，在`RAW`按钮的旁边，找到下载的图标，点击下载按钮，下载`config_from_api.yaml`文件。 把文件下载到你的
-`xiaozhi-server`下面的`data`文件夹中，然后把`config_from_api.yaml`文件重命名为`.config.yaml`。
+`pico-server`下面的`data`文件夹中，然后把`config_from_api.yaml`文件重命名为`.config.yaml`。
 
-或者直接执行 `wget https://raw.githubusercontent.com/xinnan-tech/xiaozhi-esp32-server/refs/heads/main/main/xiaozhi-server/config_from_api.yaml` 下载保存。
+或者直接执行 `wget https://raw.githubusercontent.com/xinnan-tech/pico-esp32-server/refs/heads/main/main/pico-server/config_from_api.yaml` 下载保存。
 
-下载完配置文件后，我们确认一下整个`xiaozhi-server`里面的文件如下所示：
+下载完配置文件后，我们确认一下整个`pico-server`里面的文件如下所示：
 
 ```
-xiaozhi-server
+pico-server
   ├─ docker-compose_all.yml
   ├─ data
     ├─ .config.yaml
@@ -103,25 +103,25 @@ xiaozhi-server
 如果你之前已经成功运行智控台，如果上面保存有你的密钥信息，请先从智控台上拷贝重要数据下来。因为升级过程中，有可能会覆盖原来的数据。
 
 ## 3. 清除历史版本镜像和容器
-接下来打开命令行工具，使用`终端`或`命令行`工具 进入到你的`xiaozhi-server`，执行以下命令
+接下来打开命令行工具，使用`终端`或`命令行`工具 进入到你的`pico-server`，执行以下命令
 
 ```
 docker compose -f docker-compose_all.yml down
 
-docker stop xiaozhi-esp32-server
-docker rm xiaozhi-esp32-server
+docker stop pico-esp32-server
+docker rm pico-esp32-server
 
-docker stop xiaozhi-esp32-server-web
-docker rm xiaozhi-esp32-server-web
+docker stop pico-esp32-server-web
+docker rm pico-esp32-server-web
 
-docker stop xiaozhi-esp32-server-db
-docker rm xiaozhi-esp32-server-db
+docker stop pico-esp32-server-db
+docker rm pico-esp32-server-db
 
-docker stop xiaozhi-esp32-server-redis
-docker rm xiaozhi-esp32-server-redis
+docker stop pico-esp32-server-redis
+docker rm pico-esp32-server-redis
 
-docker rmi ghcr.nju.edu.cn/xinnan-tech/xiaozhi-esp32-server:server_latest
-docker rmi ghcr.nju.edu.cn/xinnan-tech/xiaozhi-esp32-server:web_latest
+docker rmi ghcr.nju.edu.cn/xinnan-tech/pico-esp32-server:server_latest
+docker rmi ghcr.nju.edu.cn/xinnan-tech/pico-esp32-server:web_latest
 ```
 
 ## 4. 运行程序
@@ -134,18 +134,18 @@ docker compose -f docker-compose_all.yml up -d
 执行完后，再执行以下命令，查看日志信息。
 
 ```
-docker logs -f xiaozhi-esp32-server-web
+docker logs -f pico-esp32-server-web
 ```
 
 当你看到输出日志时，说明你的`智控台`启动成功了。
 
 ```
 2025-xx-xx 22:11:12.445 [main] INFO  c.a.d.s.b.a.DruidDataSourceAutoConfigure - Init DruidDataSource
-2025-xx-xx 21:28:53.873 [main] INFO  xiaozhi.AdminApplication - Started AdminApplication in 16.057 seconds (process running for 17.941)
-http://localhost:8002/xiaozhi/doc.html
+2025-xx-xx 21:28:53.873 [main] INFO  pico.AdminApplication - Started AdminApplication in 16.057 seconds (process running for 17.941)
+http://localhost:8002/pico/doc.html
 ```
 
-请注意此刻仅是`智控台`能运行，如果8000端口`xiaozhi-esp32-server`报错，先不要理会。
+请注意此刻仅是`智控台`能运行，如果8000端口`pico-esp32-server`报错，先不要理会。
 
 这时，你需要使用浏览器，打开`智控台`，链接：http://127.0.0.1:8002 ，注册第一个用户。第一个用户即是超级管理员，以后的用户都是普通用户。普通用户只能绑定设备和配置智能体;超级管理员可以进行模型管理、用户管理、参数配置等功能。
 
@@ -157,25 +157,25 @@ http://localhost:8002/xiaozhi/doc.html
 
 `server.secret`需要说明一下，这个`参数值`很重要，作用是让我们的`Server`端连接`manager-api`。`server.secret`是每次从零部署manager模块时，会自动随机生成的密钥。
 
-复制`参数值`后，打开`xiaozhi-server`下的`data`目录的`.config.yaml`文件。此刻你的配置文件内容应该是这样的：
+复制`参数值`后，打开`pico-server`下的`data`目录的`.config.yaml`文件。此刻你的配置文件内容应该是这样的：
 
 ```
 manager-api:
-  url:  http://127.0.0.1:8002/xiaozhi
+  url:  http://127.0.0.1:8002/pico
   secret: 你的server.secret值
 ```
 1、把你刚才从`智控台`复制过来的`server.secret`的`参数值`复制到`.config.yaml`文件里的`secret`里。
 
-2、因为你是docker部署，把`url`改成下面的`http://xiaozhi-esp32-server-web:8002/xiaozhi`
+2、因为你是docker部署，把`url`改成下面的`http://pico-esp32-server-web:8002/pico`
 
-3、因为你是docker部署，把`url`改成下面的`http://xiaozhi-esp32-server-web:8002/xiaozhi`
+3、因为你是docker部署，把`url`改成下面的`http://pico-esp32-server-web:8002/pico`
 
-4、因为你是docker部署，把`url`改成下面的`http://xiaozhi-esp32-server-web:8002/xiaozhi`
+4、因为你是docker部署，把`url`改成下面的`http://pico-esp32-server-web:8002/pico`
 
 类似这样的效果
 ```
 manager-api:
-  url: http://xiaozhi-esp32-server-web:8002/xiaozhi
+  url: http://pico-esp32-server-web:8002/pico
   secret: 12345678-xxxx-xxxx-xxxx-123456789000
 ```
 
@@ -186,17 +186,17 @@ manager-api:
 使用超级管理员账号，登录智控台，在顶部菜单找到`模型配置`，然后在左侧栏点击`大语言模型`，找到第一条数据`智谱AI`，点击`修改`按钮，
 弹出修改框后，将你注册到的`智谱AI`的密钥填写到`API密钥`中。然后点击保存。
 
-## 5.重启xiaozhi-esp32-server
+## 5.重启pico-esp32-server
 
 接下来打开命令行工具，使用`终端`或`命令行`工具 输入
 ```
-docker restart xiaozhi-esp32-server
-docker logs -f xiaozhi-esp32-server
+docker restart pico-esp32-server
+docker logs -f pico-esp32-server
 ```
 如果你能看到，类似以下日志,则是Server启动成功的标志。
 
 ```
-25-02-23 12:01:09[core.websocket_server] - INFO - Websocket地址是      ws://xxx.xx.xx.xx:8000/xiaozhi/v1/
+25-02-23 12:01:09[core.websocket_server] - INFO - Websocket地址是      ws://xxx.xx.xx.xx:8000/pico/v1/
 25-02-23 12:01:09[core.websocket_server] - INFO - =======上面的地址是websocket协议地址，请勿用浏览器访问=======
 25-02-23 12:01:09[core.websocket_server] - INFO - 如想测试websocket请启动digital-human模块，打开浏览器交互测试
 25-02-23 12:01:09[core.websocket_server] - INFO - =======================================================
@@ -206,12 +206,12 @@ docker logs -f xiaozhi-esp32-server
 
 OTA接口：
 ```
-http://你宿主机局域网的ip:8002/xiaozhi/ota/
+http://你宿主机局域网的ip:8002/pico/ota/
 ```
 
 Websocket接口：
 ```
-ws://你宿主机的ip:8000/xiaozhi/v1/
+ws://你宿主机的ip:8000/pico/v1/
 ```
 
 ### 第三件重要的事情
@@ -231,16 +231,16 @@ ws://你宿主机的ip:8000/xiaozhi/v1/
 
 ## 1.安装MySQL数据库
 
-如果本机已经安装了MySQL，可以直接在数据库中创建名为`xiaozhi_esp32_server`的数据库。
+如果本机已经安装了MySQL，可以直接在数据库中创建名为`pico_esp32_server`的数据库。
 
 ```sql
-CREATE DATABASE xiaozhi_esp32_server CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE pico_esp32_server CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
 如果还没有MySQL，你可以通过docker安装mysql
 
 ```
-docker run --name xiaozhi-esp32-server-db -e MYSQL_ROOT_PASSWORD=123456 -p 3306:3306 -e MYSQL_DATABASE=xiaozhi_esp32_server -e MYSQL_INITDB_ARGS="--character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci" -e TZ=Asia/Shanghai -d mysql:latest
+docker run --name pico-esp32-server-db -e MYSQL_ROOT_PASSWORD=123456 -p 3306:3306 -e MYSQL_DATABASE=pico_esp32_server -e MYSQL_INITDB_ARGS="--character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci" -e TZ=Asia/Shanghai -d mysql:latest
 ```
 
 ## 2.安装redis
@@ -248,7 +248,7 @@ docker run --name xiaozhi-esp32-server-db -e MYSQL_ROOT_PASSWORD=123456 -p 3306:
 如果还没有Redis，你可以通过docker安装redis
 
 ```
-docker run --name xiaozhi-esp32-server-redis -d -p 6379:6379 redis
+docker run --name pico-esp32-server-redis -d -p 6379:6379 redis
 ```
 
 ## 3.运行manager-api程序
@@ -287,15 +287,15 @@ spring:
 
 ```
 路径地址：
-src/main/java/xiaozhi/AdminApplication.java
+src/main/java/pico/AdminApplication.java
 ```
 
 当你看到输出日志时，说明你的`manager-api`启动成功了。
 
 ```
 2025-xx-xx 22:11:12.445 [main] INFO  c.a.d.s.b.a.DruidDataSourceAutoConfigure - Init DruidDataSource
-2025-xx-xx 21:28:53.873 [main] INFO  xiaozhi.AdminApplication - Started AdminApplication in 16.057 seconds (process running for 17.941)
-http://localhost:8002/xiaozhi/doc.html
+2025-xx-xx 21:28:53.873 [main] INFO  pico.AdminApplication - Started AdminApplication in 16.057 seconds (process running for 17.941)
+http://localhost:8002/pico/doc.html
 ```
 
 ## 4.运行manager-web程序
@@ -344,9 +344,9 @@ npm run serve
 ![conda_env](./images/conda_env_2.png)
 
 ```
-conda remove -n xiaozhi-esp32-server --all -y
-conda create -n xiaozhi-esp32-server python=3.10 -y
-conda activate xiaozhi-esp32-server
+conda remove -n pico-esp32-server --all -y
+conda create -n pico-esp32-server python=3.10 -y
+conda activate pico-esp32-server
 
 # 添加清华源通道
 conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
@@ -370,14 +370,14 @@ conda install libiconv -y
 
 打开完，找到页面中一个绿色的按钮，写着`Code`的按钮，点开它，然后你就看到`Download ZIP`的按钮。
 
-点击它，下载本项目源码压缩包。下载到你电脑后，解压它，此时它的名字可能叫`xiaozhi-esp32-server-main`
-你需要把它重命名成`xiaozhi-esp32-server`，在这个文件里，进入到`main`文件夹，再进入到`xiaozhi-server`，好了请记住这个目录`xiaozhi-server`。
+点击它，下载本项目源码压缩包。下载到你电脑后，解压它，此时它的名字可能叫`pico-esp32-server-main`
+你需要把它重命名成`pico-esp32-server`，在这个文件里，进入到`main`文件夹，再进入到`pico-server`，好了请记住这个目录`pico-server`。
 
 ```
 # 继续使用conda环境
-conda activate xiaozhi-esp32-server
-# 进入到你的项目根目录，再进入main/xiaozhi-server
-cd main/xiaozhi-server
+conda activate pico-esp32-server
+# 进入到你的项目根目录，再进入main/pico-server
+cd main/pico-server
 pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
 pip install -r requirements.txt
 ```
@@ -398,14 +398,14 @@ pip install -r requirements.txt
 
 `server.secret`需要说明一下，这个`参数值`很重要，作用是让我们的`Server`端连接`manager-api`。`server.secret`是每次从零部署manager模块时，会自动随机生成的密钥。
 
-如果你的`xiaozhi-server`目录没有`data`，你需要创建`data`目录。
-如果你的`data`下面没有`.config.yaml`文件，你可以把`xiaozhi-server`目录下的`config_from_api.yaml`文件复制到`data`，并重命名为`.config.yaml`
+如果你的`pico-server`目录没有`data`，你需要创建`data`目录。
+如果你的`data`下面没有`.config.yaml`文件，你可以把`pico-server`目录下的`config_from_api.yaml`文件复制到`data`，并重命名为`.config.yaml`
 
-复制`参数值`后，打开`xiaozhi-server`下的`data`目录的`.config.yaml`文件。此刻你的配置文件内容应该是这样的：
+复制`参数值`后，打开`pico-server`下的`data`目录的`.config.yaml`文件。此刻你的配置文件内容应该是这样的：
 
 ```
 manager-api:
-  url: http://127.0.0.1:8002/xiaozhi
+  url: http://127.0.0.1:8002/pico
   secret: 你的server.secret值
 ```
 
@@ -414,22 +414,22 @@ manager-api:
 类似这样的效果
 ```
 manager-api:
-  url: http://127.0.0.1:8002/xiaozhi
+  url: http://127.0.0.1:8002/pico
   secret: 12345678-xxxx-xxxx-xxxx-123456789000
 ```
 
 ## 9.运行项目
 
 ```
-# 确保在xiaozhi-server目录下执行
-conda activate xiaozhi-esp32-server
+# 确保在pico-server目录下执行
+conda activate pico-esp32-server
 python app.py
 ```
 
 如果你能看到，类似以下日志,则是本项目服务启动成功的标志。
 
 ```
-25-02-23 12:01:09[core.websocket_server] - INFO - Server is running at ws://xxx.xx.xx.xx:8000/xiaozhi/v1/
+25-02-23 12:01:09[core.websocket_server] - INFO - Server is running at ws://xxx.xx.xx.xx:8000/pico/v1/
 25-02-23 12:01:09[core.websocket_server] - INFO - =======上面的地址是websocket协议地址，请勿用浏览器访问=======
 25-02-23 12:01:09[core.websocket_server] - INFO - 如想测试websocket请启动digital-human模块，打开浏览器交互测试
 25-02-23 12:01:09[core.websocket_server] - INFO - =======================================================
@@ -439,12 +439,12 @@ python app.py
 
 OTA接口：
 ```
-http://你电脑局域网的ip:8002/xiaozhi/ota/
+http://你电脑局域网的ip:8002/pico/ota/
 ```
 
 Websocket接口：
 ```
-ws://你电脑局域网的ip:8000/xiaozhi/v1/
+ws://你电脑局域网的ip:8000/pico/v1/
 ```
 
 请你务必把以上两个接口地址写入到智控台中：他们将会影响websocket地址发放和自动升级功能。
@@ -463,12 +463,12 @@ ws://你电脑局域网的ip:8000/xiaozhi/v1/
 # 常见问题
 以下是一些常见问题，供参考：
 
-1、[为什么我说的话，小智识别出来很多韩文、日文、英文](./FAQ.md)<br/>
+1、[为什么我说的话，Pico识别出来很多韩文、日文、英文](./FAQ.md)<br/>
 2、[为什么会出现“TTS 任务出错 文件不存在”？](./FAQ.md)<br/>
 3、[TTS 经常失败，经常超时](./FAQ.md)<br/>
 4、[使用Wifi能连接自建服务器，但是4G模式却接不上](./FAQ.md)<br/>
-5、[如何提高小智对话响应速度？](./FAQ.md)<br/>
-6、[我说话很慢，停顿时小智老是抢话](./FAQ.md)<br/>
+5、[如何提高Pico对话响应速度？](./FAQ.md)<br/>
+6、[我说话很慢，停顿时Pico老是抢话](./FAQ.md)<br/>
 ## 部署相关教程
 1、[如何自动拉取本项目最新代码自动编译和启动](./dev-ops-integration.md)<br/>
 2、[如何部署MQTT网关开启MQTT+UDP协议](./mqtt-gateway-integration.md)<br/>

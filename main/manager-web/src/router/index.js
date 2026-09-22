@@ -4,6 +4,7 @@ import VueRouter from 'vue-router'
 Vue.use(VueRouter)
 
 const routes = [
+  {path: '/firmware-center', name: 'FirmwareCenter', component: () => import('../views/FirmwareCenter.vue'), meta: {requiresAuth: true, title: 'Pico 固件中心'}},
   {
     path: '/',
     name: 'welcome',
@@ -42,16 +43,12 @@ const routes = [
   {
     path: '/register',
     name: 'Register',
-    component: function () {
-      return import('../views/register.vue')
-    }
+    redirect: '/login'
   },
   {
     path: '/retrieve-password',
     name: 'RetrievePassword',
-    component: function () {
-      return import('../views/retrievePassword.vue')
-    }
+    redirect: '/login'
   },
   // 设备管理页面路由
   {
@@ -61,30 +58,12 @@ const routes = [
       return import('../views/DeviceManagement.vue')
     }
   },
-  // 添加用户管理路由
-  {
-    path: '/user-management',
-    name: 'UserManagement',
-    component: function () {
-      return import('../views/UserManagement.vue')
-    }
-  },
+  // 模型配置
   {
     path: '/model-config',
     name: 'ModelConfig',
     component: function () {
       return import('../views/ModelConfig.vue')
-    }
-  },
-  {
-    path: '/params-management',
-    name: 'ParamsManagement',
-    component: function () {
-      return import('../views/ParamsManagement.vue')
-    },
-    meta: {
-      requiresAuth: true,
-      title: '参数管理'
     }
   },
   {
@@ -96,28 +75,6 @@ const routes = [
     meta: {
       requiresAuth: true,
       title: '知识库管理'
-    }
-  },
-  {
-    path: '/server-side-management',
-    name: 'ServerSideManager',
-    component: function () {
-      return import('../views/ServerSideManager.vue')
-    },
-    meta: {
-      requiresAuth: true,
-      title: '服务端管理'
-    }
-  },
-  {
-    path: '/ota-management',
-    name: 'OtaManagement',
-    component: function () {
-      return import('../views/OtaManagement.vue')
-    },
-    meta: {
-      requiresAuth: true,
-      title: 'OTA管理'
     }
   },
   {
@@ -142,20 +99,6 @@ const routes = [
       title: '音色克隆管理'
     }
   },
-  {
-    path: '/dict-management',
-    name: 'DictManagement',
-    component: function () {
-      return import('../views/DictManagement.vue')
-    }
-  },
-  {
-    path: '/provider-management',
-    name: 'ProviderManagement',
-    component: function () {
-      return import('../views/ProviderManagement.vue')
-    }
-  },
   // 添加默认角色管理路由
   {
     path: '/agent-template-management',
@@ -172,28 +115,25 @@ const routes = [
       return import('../views/TemplateQuickConfig.vue')
     }
   },
-  // 功能配置页面路由
+  // 已下线页面的兜底：避免旧书签或历史记录白屏
+  { path: '/user-management', redirect: '/home' },
+  { path: '/params-management', redirect: '/system-settings' },
+  { path: '/server-side-management', redirect: '/system-settings' },
+  { path: '/ota-management', redirect: '/firmware-center' },
+  { path: '/dict-management', redirect: '/system-settings' },
+  { path: '/provider-management', redirect: '/model-config' },
+  { path: '/feature-management', redirect: '/system-settings' },
+  { path: '/replacement-word-management', redirect: '/system-settings' },
+  // 系统设置
   {
-    path: '/feature-management',
-    name: 'FeatureManagement',
+    path: '/system-settings',
+    name: 'SystemSettings',
     component: function () {
-      return import('../views/FeatureManagement.vue')
+      return import('../views/SystemSettings.vue')
     },
     meta: {
       requiresAuth: true,
-      title: '功能配置'
-    }
-  },
-  // 替换词管理
-  {
-    path: '/replacement-word-management',
-    name: 'ReplacementWordManagement',
-    component: function () {
-      return import('../views/ReplacementWordManagement.vue')
-    },
-    meta: {
-      requiresAuth: true,
-      title: '替换词管理'
+      title: '系统设置'
     }
   },
   // 通讯录管理页面路由
@@ -229,7 +169,7 @@ VueRouter.prototype.push = function push(location) {
 }
 
 // 需要登录才能访问的路由
-const protectedRoutes = ['home', 'RoleConfig', 'DeviceManagement', 'UserManagement', 'ModelConfig', 'KnowledgeBaseManagement', 'KnowledgeFileUpload', 'AddressBookManagement']
+const protectedRoutes = ['FirmwareCenter', 'home', 'RoleConfig', 'DeviceManagement', 'ModelConfig', 'KnowledgeBaseManagement', 'KnowledgeFileUpload', 'AddressBookManagement', 'AgentTemplateManagement', 'VoiceCloneManagement', 'VoiceResourceManagement', 'SystemSettings']
 
 // 路由守卫
 router.beforeEach((to, from, next) => {
