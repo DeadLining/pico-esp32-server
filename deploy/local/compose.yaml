@@ -87,9 +87,7 @@ services:
     build:
       context: /Users/shengzhoukong/Documents/pico/pico-esp32
       dockerfile: docker/firmware-builder/Dockerfile
-      # Recorded as the image revision and mixed into the build cache key, so a
-      # rebuild with new firmware sources must change this or the service keeps
-      # serving the previously compiled artifacts from its cache.
+      # Stamped into the image as its revision for traceability.
       args:
         FIRMWARE_SOURCE_REVISION: ${PICO_FIRMWARE_REVISION:-unknown}
     restart: unless-stopped
@@ -98,9 +96,10 @@ services:
       FIRMWARE_SOURCE_DIR: /opt/xiaozhi-esp32
       FIRMWARE_OUTPUT_DIR: /output
       FIRMWARE_BUILDER_PORT: 8090
-      # Mixed into the build cache key. Bump PICO_FIRMWARE_REVISION whenever the
-      # firmware sources change, otherwise the service keeps serving previously
-      # compiled artifacts from its cache instead of rebuilding.
+      # Recorded alongside the firmware source fingerprint in the build cache
+      # key. The fingerprint tracks working-tree edits automatically, so this
+      # value no longer has to be bumped by hand for a rebuild to be picked up;
+      # it still separates two checkouts with identical contents.
       FIRMWARE_SOURCE_REVISION: ${PICO_FIRMWARE_REVISION:-unknown}
       HTTP_PROXY: ${PICO_BUILDER_HTTP_PROXY:-}
       HTTPS_PROXY: ${PICO_BUILDER_HTTPS_PROXY:-}
@@ -109,10 +108,12 @@ services:
       - "8090"
     volumes:
       - ${PICO_FIRMWARE_OUTPUT_HOST:-/Users/shengzhoukong/Documents/pico/pico-esp32-server/.runtime/firmware-builds}:/output
-      # Source hot-mount (read-only) for board definitions, mirroring how
-      # pico-server is mounted. Firmware source edits then take effect on restart
-      # without rebuilding the multi-GB ESP-IDF image.
+      # Source hot-mount (read-only), mirroring how pico-server is mounted.
+      # Firmware edits then take effect on restart without rebuilding the
+      # multi-GB ESP-IDF image. The board tree carries the hardware fixes and
+      # docker/firmware-builder carries the builder service itself.
       - /Users/shengzhoukong/Documents/pico/pico-esp32/main/boards/folotoy/ai-passport:/opt/xiaozhi-esp32/main/boards/folotoy/ai-passport:ro
+      - /Users/shengzhoukong/Documents/pico/pico-esp32/docker/firmware-builder:/opt/xiaozhi-esp32/docker/firmware-builder:ro
       # ESP-IDF downloads ~60 managed components on first build. Without this the
       # whole set is wiped whenever the container is recreated, forcing every
       # rebuild to re-download hundreds of MB before it can compile anything.
