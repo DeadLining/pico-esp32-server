@@ -819,7 +819,12 @@ class ConnectionHandler:
         url = fd_config.get("url")
         if not url:
             raise RuntimeError("full_duplex.enabled requires full_duplex.url")
-        session = FullDuplexSession(url, session_id=self.session_id)
+        session = FullDuplexSession(
+            url,
+            session_id=self.session_id,
+            max_audio_frames=int(fd_config.get("max_audio_frames", 64)),
+            interruption_route=fd_config.get("interruption_route", "semantic"),
+        )
         codec = OpusPcmCodec(self.sample_rate)
         self.full_duplex_bridge = DeviceFullDuplexBridge(
             session,

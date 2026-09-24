@@ -43,6 +43,7 @@ def test_session_update_and_pcm_are_openai_realtime_events():
         session = await make_session(ws)
         await session.update(instructions="be concise", voice="alloy")
         await session.send_pcm(b"\x01\x02")
+        assert session.url.endswith("interruption_route=semantic")
         assert ws.sent[0]["type"] == "session.update"
         assert ws.sent[0]["session"]["instructions"] == "be concise"
         assert ws.sent[1] == {

@@ -11,6 +11,7 @@ import asyncio
 import base64
 import json
 import inspect
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from dataclasses import dataclass
 from typing import Any, Awaitable, Callable, Protocol
 
@@ -49,13 +50,20 @@ class FullDuplexSession:
         session_id: str | None = None,
         aec: AecProcessor | None = None,
         max_audio_frames: int = 64,
+        interruption_route: str = "semantic",
         websocket_factory: Callable[..., Awaitable[Any]] | None = None,
     ) -> None:
         if not url.startswith(("ws://", "wss://")):
             raise ValueError("full-duplex URL must use ws:// or wss://")
         if max_audio_frames < 1:
             raise ValueError("max_audio_frames must be positive")
-        self.url = url
+        if interruption_route not in {"keyword", "semantic"}:
+            raise ValueError("interruption_route must be keyword or semantic")
+        parts = urlsplit(url)
+        query = dict(parse_qsl(parts.query, keep_blank_values=True))
+        query["interruption_route"] = interruption_route
+        self.url = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
+        self.interruption_route = interruption_route
         self.session_id = session_id
         self.aec = aec or PassthroughAec()
         self.audio_queue: asyncio.Queue[PlaybackAudio] = asyncio.Queue(maxsize=max_audio_frames)
