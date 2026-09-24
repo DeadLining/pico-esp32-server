@@ -13,6 +13,8 @@ async def handleAbortMessage(conn: "ConnectionHandler"):
     conn.client_abort = True
     if getattr(conn, "full_duplex_bridge", None) is not None:
         await conn.full_duplex_bridge.cancel()
+        conn.clearSpeakStatus()
+        return
     conn.clear_queues()
     # 打断客户端说话状态
     await conn.websocket.send(

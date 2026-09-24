@@ -79,7 +79,7 @@ enable_websocket_ping: false
 # Keep disabled until device smoke tests pass. It bypasses local ASR/TTS only
 # when enabled for an authenticated device session.
 full_duplex:
-  enabled: true
+  enabled: false
   url: ws://192.168.18.95:7869/v1/realtime
   voice: null
   interruption_route: semantic

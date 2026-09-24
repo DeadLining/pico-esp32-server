@@ -246,7 +246,7 @@ class ConnectionHandler:
             # 启动AEC缓存清理任务
             self._aec_cache_cleanup_task = asyncio.create_task(self._check_aec_cache_expiry())
 
-            self.welcome_msg = self.config["pico"]
+            self.welcome_msg = copy.deepcopy(self.config["pico"])
             self.welcome_msg["session_id"] = self.session_id
 
             # 从配置中读取采样率
@@ -375,6 +375,12 @@ class ConnectionHandler:
         if isinstance(message, str):
             await handleTextMessage(self, message)
         elif isinstance(message, bytes):
+            # Full-duplex owns the device audio path. Do this before the
+            # legacy VAD/ASR readiness guard because those components are
+            # intentionally not initialized in full-duplex mode.
+            if self.full_duplex_bridge is not None:
+                await self.full_duplex_bridge.ingest_opus(message)
+                return
             if self.vad is None or self.asr is None:
                 return
 
@@ -385,10 +391,6 @@ class ConnectionHandler:
                     return
 
             # 入口处直接解码PCM，避免VAD和ASR重复解码
-            if self.full_duplex_bridge is not None:
-                await self.full_duplex_bridge.ingest_opus(message)
-                return
-
             pcm_frame = self._decode_opus_packet(message)
             if pcm_frame:
                 self.asr_audio_queue.put(pcm_frame)
@@ -825,7 +827,10 @@ class ConnectionHandler:
             max_audio_frames=int(fd_config.get("max_audio_frames", 64)),
             interruption_route=fd_config.get("interruption_route", "semantic"),
         )
-        codec = OpusPcmCodec(self.sample_rate)
+        # Capture is 16 kHz/60 ms. Playback independently uses the output
+        # rate advertised in hello; upstream PCM is always 24 kHz.
+        codec = OpusPcmCodec(int(fd_config.get("device_opus_sample_rate", 16000)),
+                             output_sample_rate=self.sample_rate)
         self.full_duplex_bridge = DeviceFullDuplexBridge(
             session,
             codec,
@@ -836,7 +841,7 @@ class ConnectionHandler:
             instructions=self.config.get("prompt"),
             voice=fd_config.get("voice"),
         )
-        self.logger.bind(tag=TAG).info("全双工上游连接已建立: %s", url)
+        self.logger.bind(tag=TAG).info(f"全双工上游连接已建立: {url}")
 
     async def _send_full_duplex_opus(self, packet: bytes):
         if self.websocket is not None:
@@ -852,17 +857,29 @@ class ConnectionHandler:
                     "session_id": self.session_id,
                 }, ensure_ascii=False))
         elif event_type == "response.created":
+            self.logger.bind(tag=TAG).info("全双工播放开始 response={}", (event.get("response") or {}).get("id"))
             self.client_is_speaking = True
             await self.websocket.send(json.dumps({
                 "type": "tts", "state": "start", "session_id": self.session_id,
+            }))
+        elif event_type == "pico.playback.abort":
+            self.logger.bind(tag=TAG).info("全双工清空播放 generation={}", event.get("generation"))
+            self.client_is_speaking = False
+            await self.websocket.send(json.dumps({
+                "type": "tts", "state": "abort", "session_id": self.session_id,
             }))
         elif event_type == "response.output_audio.done":
             self.client_is_speaking = False
             await self.websocket.send(json.dumps({
                 "type": "tts", "state": "stop", "session_id": self.session_id,
             }))
+        elif event_type == "pico.bridge.failed":
+            self.logger.bind(tag=TAG).error(f"全双工桥接已停止: {event}")
+            # Close the device transport so its next connection gets a fresh bridge.
+            if self.websocket is not None:
+                await self.websocket.close(code=1011, reason="Realtime bridge unavailable")
         elif event_type == "error":
-            self.logger.bind(tag=TAG).error("全���工上游错误: %s", event)
+            self.logger.bind(tag=TAG).error(f"全双工上游错误: {event}")
 
     async def _initialize_private_config_async(self):
         """从接口异步获取差异化配置（异步版本，不阻塞主循环）"""
@@ -992,6 +1009,12 @@ class ConnectionHandler:
             self.config["TTS"][select_tts_module]["correct_words"] = private_config[
                 "correct_words"
             ]
+
+        # Full-duplex delegates ASR/TTS to the remote Realtime service.
+        # Do not initialize the legacy local/remote module stack in this mode;
+        # apart from wasting resources, it would open competing audio paths.
+        if self.full_duplex_enabled:
+            return
 
         # 使用 run_in_executor 在线程池中执行 initialize_modules，避免阻塞主循环
         try:

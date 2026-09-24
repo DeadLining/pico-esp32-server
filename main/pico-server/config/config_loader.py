@@ -40,7 +40,11 @@ async def load_config():
     custom_config = read_config(custom_config_path)
 
     if custom_config.get("manager-api", {}).get("url"):
-        config = await get_config_from_api_async(custom_config)
+        # The API supplies model/device settings, while the default config
+        # contains local runtime controls such as the Mac-side full-duplex
+        # bridge. Pass the merged local view so those controls are retained.
+        local_config = merge_configs(default_config, custom_config)
+        config = await get_config_from_api_async(local_config)
     else:
         # 合并配置
         config = merge_configs(default_config, custom_config)
@@ -78,6 +82,13 @@ async def get_config_from_api_async(config):
             "auth_key": config["server"].get("auth_key", ""),
         }
     config_data["server"]["auth"] = {"enabled": auth_enabled}
+    # Runtime-only local options must survive manager-api mode. The API
+    # returns model/device configuration, but it does not know about the
+    # Mac-side Realtime bridge. Without this override, full_duplex.enabled
+    # silently disappears and every device falls back to legacy ASR/TTS.
+    if config.get("full_duplex"):
+        config_data["full_duplex"] = config["full_duplex"]
+
     # 如果服务器没有prompt_template，则从本地配置读取
     if not config_data.get("prompt_template"):
         config_data["prompt_template"] = config.get("prompt_template")
