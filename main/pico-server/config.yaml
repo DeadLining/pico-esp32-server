@@ -75,6 +75,16 @@ stop_tts_notify_voice: "config/assets/tts_notify.mp3"
 enable_websocket_ping: false
 
 
+# Experimental OpenAI-compatible cascaded full-duplex path.
+# Keep disabled until device smoke tests pass. It bypasses local ASR/TTS only
+# when enabled for an authenticated device session.
+full_duplex:
+  enabled: false
+  url: ws://192.168.18.95:7869/v1/realtime
+  voice: null
+  interruption_route: semantic
+  max_audio_frames: 64
+
 # TTS音频发送延迟配置
 # tts_audio_send_delay: 控制音频包发送间隔
 #   0: 使用精确时间控制，严格匹配音频帧率（默认，运行时按音频帧率计算）

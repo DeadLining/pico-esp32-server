@@ -45,6 +45,7 @@ from core.utils.prompt_manager import PromptManager
 from core.utils.voiceprint_provider import VoiceprintProvider
 from core.utils.util import get_system_error_response
 from core.utils import textUtils
+from core.realtime import DeviceFullDuplexBridge, FullDuplexSession, OpusPcmCodec
 
 
 TAG = __name__
@@ -199,6 +200,12 @@ class ConnectionHandler:
         self.calling = False
         # 标记当前是否为来电接听模式
         self.incoming_call = None
+
+        # Optional Realtime full-duplex path. Disabled by default until the
+        # device/session smoke test is complete; legacy ASR/TTS remains intact.
+        fd_config = self.config.get("full_duplex", {}) or {}
+        self.full_duplex_enabled = bool(fd_config.get("enabled", False))
+        self.full_duplex_bridge = None
 
     async def handle_connection(self, ws: websockets.ServerConnection):
         try:
@@ -378,6 +385,10 @@ class ConnectionHandler:
                     return
 
             # 入口处直接解码PCM，避免VAD和ASR重复解码
+            if self.full_duplex_bridge is not None:
+                await self.full_duplex_bridge.ingest_opus(message)
+                return
+
             pcm_frame = self._decode_opus_packet(message)
             if pcm_frame:
                 self.asr_audio_queue.put(pcm_frame)
@@ -792,10 +803,61 @@ class ConnectionHandler:
         try:
             # 异步获取差异化配置
             await self._initialize_private_config_async()
+            if self.full_duplex_enabled:
+                if not self.need_bind:
+                    await self.start_full_duplex()
+                return
             # 在线程池中初始化组件
             self.executor.submit(self._initialize_components)
         except Exception as e:
             self.logger.bind(tag=TAG).error(f"后台初始化失败: {e}")
+
+    async def start_full_duplex(self):
+        if not self.full_duplex_enabled or self.full_duplex_bridge is not None:
+            return
+        fd_config = self.config.get("full_duplex", {}) or {}
+        url = fd_config.get("url")
+        if not url:
+            raise RuntimeError("full_duplex.enabled requires full_duplex.url")
+        session = FullDuplexSession(url, session_id=self.session_id)
+        codec = OpusPcmCodec(self.sample_rate)
+        self.full_duplex_bridge = DeviceFullDuplexBridge(
+            session,
+            codec,
+            send_opus=self._send_full_duplex_opus,
+            on_event=self._handle_full_duplex_event,
+        )
+        await self.full_duplex_bridge.start(
+            instructions=self.config.get("prompt"),
+            voice=fd_config.get("voice"),
+        )
+        self.logger.bind(tag=TAG).info("全双工上游连接已建立: %s", url)
+
+    async def _send_full_duplex_opus(self, packet: bytes):
+        if self.websocket is not None:
+            await self.websocket.send(packet)
+
+    async def _handle_full_duplex_event(self, event):
+        event_type = event.get("type")
+        if event_type == "conversation.item.input_audio_transcription.completed":
+            text = (event.get("transcript") or "").strip()
+            if text and self.websocket is not None:
+                await self.websocket.send(json.dumps({
+                    "type": "stt", "text": textUtils.check_emoji(text),
+                    "session_id": self.session_id,
+                }, ensure_ascii=False))
+        elif event_type == "response.created":
+            self.client_is_speaking = True
+            await self.websocket.send(json.dumps({
+                "type": "tts", "state": "start", "session_id": self.session_id,
+            }))
+        elif event_type == "response.output_audio.done":
+            self.client_is_speaking = False
+            await self.websocket.send(json.dumps({
+                "type": "tts", "state": "stop", "session_id": self.session_id,
+            }))
+        elif event_type == "error":
+            self.logger.bind(tag=TAG).error("全���工上游错误: %s", event)
 
     async def _initialize_private_config_async(self):
         """从接口异步获取差异化配置（异步版本，不阻塞主循环）"""
@@ -1584,6 +1646,13 @@ class ConnectionHandler:
             if hasattr(self, "aec_audio_cache"):
                 self.aec_audio_cache.clear()
                 self.aec_audio_cache_time.clear()
+
+            if self.full_duplex_bridge is not None:
+                try:
+                    await self.full_duplex_bridge.stop()
+                except Exception as bridge_error:
+                    self.logger.bind(tag=TAG).warning(f"全双工资源清理失败: {bridge_error}")
+                self.full_duplex_bridge = None
 
             # 清理工具处理器资源
             if hasattr(self, "func_handler") and self.func_handler:
